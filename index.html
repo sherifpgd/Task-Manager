@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software Feature Tracker</title>
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --panel2:#f0f2f5; --border:#e2e5ea; --text:#1d2330; --muted:#6b7280;
+  --accent:#4f46e5; --accent-soft:#eef0ff; --danger:#dc2626; --warn:#d97706;
+  --s-todo:#9ca3af; --s-progress:#3b82f6; --s-testing:#8b5cf6; --s-hold:#f59e0b; --s-done:#16a34a;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --border:#2a2f3a; --text:#e6e8ec; --muted:#9aa1ad;
+    --accent:#818cf8; --accent-soft:#252a45; --danger:#f87171; --warn:#fbbf24;
+    --s-todo:#6b7280; --s-progress:#60a5fa; --s-testing:#a78bfa; --s-hold:#fbbf24; --s-done:#4ade80;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --border:#2a2f3a; --text:#e6e8ec; --muted:#9aa1ad;
+  --accent:#818cf8; --accent-soft:#252a45; --danger:#f87171; --warn:#fbbf24;
+  --s-todo:#6b7280; --s-progress:#60a5fa; --s-testing:#a78bfa; --s-hold:#fbbf24; --s-done:#4ade80;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:flex;min-height:100vh}
+/* Sidebar */
+.side{width:260px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{padding:18px 16px 12px;font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.brand .logo{width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:14px}
+.nav{padding:4px 8px;overflow:auto;flex:1}
+.nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:14px 10px 6px;display:flex;justify-content:space-between;align-items:center}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--panel2)}
+.nav-item.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav-item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-item .pc{font-size:11px;color:var(--muted)}
+.nav-item .badge{font-size:11px;background:var(--panel2);border-radius:99px;padding:1px 7px;color:var(--muted)}
+.cdot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.side-foot{padding:10px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px}
+/* Main */
+.main{flex:1;min-width:0;padding:24px 28px 60px}
+h1{font-size:22px;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sub{color:var(--muted);margin-top:4px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.spacer{flex:1}
+.btn{border:1px solid var(--border);background:var(--panel);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--panel2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 8px;font-size:12px}
+.btn.danger{color:var(--danger)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{border:none;background:var(--panel);padding:7px 12px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+.icon-btn{border:none;background:none;cursor:pointer;padding:4px 6px;border-radius:6px;color:var(--muted)}
+.icon-btn:hover{background:var(--panel2);color:var(--text)}
+input[type=text],input[type=search],input[type=date],select,textarea{border:1px solid var(--border);background:var(--panel);padding:7px 10px;border-radius:8px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{width:100%;resize:vertical;min-height:70px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.tog{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:20px 0}
+.kpi{padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:700;margin-top:4px}
+.kpi .l{font-size:12px;color:var(--muted)}
+/* Status */
+.bar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--panel2)}
+.bar>div{height:100%}
+.st-todo{background:var(--s-todo)}.st-progress{background:var(--s-progress)}.st-testing{background:var(--s-testing)}.st-hold{background:var(--s-hold)}.st-done{background:var(--s-done)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:var(--panel2);color:var(--muted);white-space:nowrap}
+.pill.p-High{color:#ea580c}.pill.p-Critical{color:#fff;background:var(--danger)}
+.pill.overdue{background:var(--danger);color:#fff}
+.pill.soon{color:var(--warn)}
+.av{width:24px;height:24px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:inline-grid;place-items:center;flex-shrink:0}
+/* Dashboard */
+.sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.sw-card{padding:16px;cursor:pointer;transition:border-color .15s;border-top-width:4px}
+.sw-card:hover{border-color:var(--accent)}
+.sw-card h3{margin:0;font-size:16px}
+.sw-card .desc{font-size:12px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw-card .counts{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:12px;text-align:center}
+.sw-card .counts b{display:block;font-size:16px}
+.sw-card .counts span{font-size:10px;color:var(--muted)}
+.big-pct{font-size:22px;font-weight:700}
+section.block{margin-top:26px}
+section.block h2{font-size:15px;margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)}
+.list li.click{cursor:pointer}
+.list li.click:hover{background:var(--panel2)}
+.list li:last-child{border-bottom:none}
+.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .m{font-size:12px;color:var(--muted);white-space:nowrap}
+.hbar{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.hbar .lb{width:110px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .tr{flex:1;height:10px;background:var(--panel2);border-radius:99px;overflow:hidden}
+.hbar .tr div{height:100%;border-radius:99px}
+.hbar .n{width:60px;text-align:right;font-size:12px;color:var(--muted)}
+.empty-s{padding:16px;color:var(--muted);font-size:13px}
+/* Toolbar */
+.toolbar{margin:18px 0 6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:var(--panel);border-radius:99px;padding:4px 11px;font-size:12px;cursor:pointer}
+.chip b{font-weight:600;opacity:.75}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* Headings / list */
+.heading{margin-top:16px;overflow:hidden}
+.heading-hd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--panel2);flex-wrap:wrap}
+.heading-hd h3{margin:0;font-size:15px;flex:1;cursor:pointer;user-select:none;min-width:120px}
+.heading-hd .caret{display:inline-block;transition:transform .15s;margin-right:6px;color:var(--muted)}
+.heading.collapsed .caret{transform:rotate(-90deg)}
+.heading.collapsed .heading-body{display:none}
+.heading.collapsed .heading-hd{border-bottom:none}
+.hcount{font-size:12px;color:var(--muted)}
+.task{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 6px;border-bottom:1px solid var(--border);background:var(--panel)}
+.task:hover{background:var(--panel2)}
+.task.dragging,.kcard.dragging{opacity:.4}
+.grip{cursor:grab;color:var(--muted);opacity:.4;font-size:12px;letter-spacing:-2px;padding:0 2px;user-select:none}
+.task:hover .grip{opacity:1}
+.task input[type=checkbox]{width:17px;height:17px;accent-color:var(--s-done);cursor:pointer;flex-shrink:0}
+.task .title{flex:1;min-width:0;cursor:pointer}
+.task .tt{overflow:hidden;text-overflow:ellipsis}
+.task.is-done .tt{text-decoration:line-through;color:var(--muted)}
+.tmeta{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.last-c{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+select.status{padding:4px 8px;font-size:12px;border-radius:99px;font-weight:600;border-width:2px}
+select.s-todo{border-color:var(--s-todo)}select.s-progress{border-color:var(--s-progress)}select.s-testing{border-color:var(--s-testing)}select.s-hold{border-color:var(--s-hold)}select.s-done{border-color:var(--s-done)}
+.cbtn{font-size:12px;color:var(--muted);border:none;background:none;cursor:pointer;padding:4px 6px;border-radius:6px;white-space:nowrap}
+.cbtn:hover{background:var(--panel)}
+.add-task{display:flex;gap:6px;padding:10px 14px;flex-wrap:wrap}
+.add-task input{flex:1;min-width:180px}
+.drag-over{outline:2px dashed var(--accent);outline-offset:-2px}
+.no-tasks{padding:14px;color:var(--muted);font-size:13px}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .e-ic{font-size:40px;margin-bottom:8px}
+/* Board */
+.board{display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:12px;overflow-x:auto;margin-top:16px;padding-bottom:8px}
+.col{background:var(--panel2);border-radius:12px;padding:10px;min-height:300px}
+.col-hd{display:flex;align-items:center;gap:6px;font-weight:600;margin:2px 4px 10px}
+.col-hd .hcount{flex:1}
+.kcard{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow)}
+.kcard:hover{border-color:var(--accent)}
+.kcard .kt{font-weight:600;margin-bottom:4px;word-break:break-word}
+.kcard .kh{font-size:11px;color:var(--muted);margin-bottom:6px}
+.kcard .kf{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;min-width:820px}
+.tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--panel2)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.click:hover td{background:var(--panel2);cursor:pointer}
+.tbl .done-t{text-decoration:line-through;color:var(--muted)}
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:5vh 16px;z-index:50;overflow:auto}
+.ov.show{display:flex}
+.modal{width:100%;max-width:620px;padding:20px}
+.modal h2{margin:0 0 14px;font-size:17px}
+.field{margin-bottom:12px}
+.field>label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.field input[type=text],.field input[type=date],.field select{width:100%}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.comments{max-height:240px;overflow:auto;margin-bottom:8px}
+.cm{background:var(--panel2);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.cm .when{font-size:11px;color:var(--muted);margin-bottom:2px;display:flex;justify-content:space-between}
+.cm .txt{white-space:pre-wrap;word-wrap:break-word}
+.sub-item{display:flex;align-items:center;gap:8px;padding:5px 2px}
+.sub-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--s-done)}
+.sub-item span{flex:1}
+.sub-item.done span{text-decoration:line-through;color:var(--muted)}
+.modal-foot{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.meta{font-size:11px;color:var(--muted)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches label{cursor:pointer}
+.swatches input{display:none}
+.swatches span{display:block;width:26px;height:26px;border-radius:8px;border:3px solid transparent}
+.swatches input:checked+span{border-color:var(--text)}
+/* Toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:#1d2330;color:#fff;padding:10px 14px;border-radius:10px;display:flex;gap:14px;align-items:center;z-index:60;transition:transform .2s;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:calc(100% - 32px)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast button{background:none;border:none;color:#a5b4fc;font-weight:700;cursor:pointer}
+pre.code{background:var(--panel2);border:1px solid var(--border);padding:10px;border-radius:8px;max-height:180px;overflow:auto;font-size:11px;margin:6px 0 0;white-space:pre}
+ol.steps{padding-left:20px;margin:8px 0}
+ol.steps li{margin-bottom:8px;line-height:1.45}
+.bk-status{padding:10px 12px;border-radius:8px;background:var(--panel2);margin-bottom:14px;font-size:13px}
+.bk-status.ok{border-left:4px solid var(--s-done)}.bk-status.err{border-left:4px solid var(--danger)}.bk-status.off{border-left:4px solid var(--s-todo)}
+#backupBtn.err{color:var(--danger);border-color:var(--danger)}
+#backupBtn.ok{color:var(--s-done)}
+.bk-pill{position:fixed;right:16px;bottom:16px;z-index:55;background:var(--danger);color:#fff;border:none;border-radius:99px;padding:10px 16px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);display:none}
+.bk-pill.show{display:block}
+.mobile-top{display:none}
+@media (max-width:820px){
+  .app{flex-direction:column}
+  .side{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border)}
+  .nav,.side-foot{display:none}
+  .side.open .nav{display:block}
+  .side.open .side-foot{display:grid}
+  .mobile-top{display:inline-block;margin-left:auto}
+  .main{padding:16px}
+  .grid3,.grid2{grid-template-columns:1fr}
+  .task{flex-wrap:wrap}
+  .task .title{flex-basis:calc(100% - 60px)}
+  .grip{display:none}
+}
+@media print{
+  .side,.toolbar,.add-task,.btn,.icon-btn,.cbtn,.grip,.seg,.toast,.ov{display:none!important}
+  .main{padding:0}
+  body{background:#fff}
+  .card{box-shadow:none;break-inside:avoid}
+  .heading.collapsed .heading-body{display:block}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side">
+    <div class="brand"><div class="logo">✓</div>Feature Tracker
+      <button class="btn sm mobile-top" onclick="document.getElementById('side').classList.toggle('open')">☰ Menu</button>
+    </div>
+    <div class="nav" id="nav"></div>
+    <div class="side-foot">
+      <button class="btn sm" onclick="exportData()" title="Download a full backup (.json)">⬇ Backup</button>
+      <button class="btn sm" onclick="document.getElementById('importFile').click()" title="Restore from a backup file">⬆ Restore</button>
+      <button class="btn sm" onclick="exportCSV()" title="Download all tasks as a spreadsheet">📄 Excel/CSV</button>
+      <button class="btn sm" onclick="window.print()" title="Print or save the current view as PDF">🖨 Print</button>
+      <button class="btn sm" id="backupBtn" onclick="backupClick()" style="grid-column:1/-1"></button>
+      <button class="btn sm" id="themeBtn" onclick="cycleTheme()" style="grid-column:1/-1"></button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden onchange="importData(this)">
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div class="ov" id="ov" onmousedown="if(event.target===this)closeModal()"><div class="modal card" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<button class="bk-pill" id="bkPill" onclick="signInAndBackup()"></button>
+<datalist id="people"></datalist>
+
+<script>
+const KEY = 'software-feature-tracker.v1';
+const STATUSES = [
+  {k:'todo',label:'To Do'},{k:'progress',label:'In Progress'},{k:'testing',label:'Testing'},
+  {k:'hold',label:'On Hold'},{k:'done',label:'Done'}
+];
+const SL = Object.fromEntries(STATUSES.map(s=>[s.k,s.label]));
+const TYPES = ['Feature','Change','Bug Fix','Improvement'];
+const PRIORITIES = ['Critical','High','Medium','Low'];
+const PRANK = {Critical:0,High:1,Medium:2,Low:3};
+const COLORS = ['#4f46e5','#0891b2','#16a34a','#ea580c','#db2777','#7c3aed','#ca8a04','#475569'];
+const DEFAULT_HEADINGS = ['New Features','Changes Needed','Bug Fixes'];
+
+let db, drag = null, toastTimer = null, ui = null;
+ui = freshUi('dashboard');
+function freshUi(view){ return {view, mode:(ui&&ui.mode)||'list', filter:'all', prio:'all', who:'all', swf:'all', q:'', hideDone:false, sort:'due', collapsed:(ui&&ui.collapsed)||{}}; }
+
+/* ---------- Storage ---------- */
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(KEY)); if(d && Array.isArray(d.software)) return d; }catch(e){}
+  return { software:[] };
+}
+function migrate(d){
+  d.settings = d.settings || {theme:'auto'};
+  d.activity = Array.isArray(d.activity) ? d.activity : [];
+  d.software.forEach((sw,i)=>{
+    sw.id = sw.id || uid(); sw.name = sw.name || 'Untitled';
+    sw.desc = sw.desc || ''; sw.version = sw.version || ''; sw.color = sw.color || COLORS[i % COLORS.length];
+    sw.headings = sw.headings || [];
+    sw.headings.forEach(h=>{
+      h.id = h.id || uid(); h.tasks = h.tasks || [];
+      h.tasks.forEach(t=>{
+        t.id = t.id || uid(); t.title = t.title || 'Untitled task';
+        t.status = SL[t.status] ? t.status : 'todo';
+        t.type = t.type || 'Feature'; t.priority = PRANK[t.priority]!==undefined ? t.priority : 'Medium';
+        t.notes = t.notes || ''; t.due = t.due || ''; t.assignee = t.assignee || '';
+        t.subtasks = t.subtasks || []; t.comments = t.comments || [];
+        t.created = t.created || now(); t.updated = t.updated || t.created;
+      });
+    });
+  });
+  return d;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ alert('Could not save to browser storage. Use Backup to save your data to a file.'); } markDirty(); }
+
+/* ---------- Helpers ---------- */
+function uid(){ return Math.random().toString(36).slice(2,9)+Date.now().toString(36); }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function now(){ return new Date().toISOString(); }
+function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function daysUntil(d){ return Math.round((Date.parse(d)-Date.parse(todayISO()))/864e5); }
+function fmt(iso){ if(!iso) return ''; const d=new Date(iso); return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(d){ return new Date(d+'T00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+function ago(iso){
+  const s=(Date.now()-new Date(iso))/1000;
+  if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago'; if(s<604800) return Math.floor(s/86400)+'d ago';
+  return new Date(iso).toLocaleDateString();
+}
+function findSw(id){ return db.software.find(s=>s.id===id); }
+function findTask(tId){
+  for(const sw of db.software) for(const h of sw.headings){ const t=h.tasks.find(x=>x.id===tId); if(t) return {sw,h,t}; }
+  return {};
+}
+function allTasks(sw){ return sw.headings.flatMap(h=>h.tasks); }
+function entries(){ return db.software.flatMap(sw=>sw.headings.flatMap(h=>h.tasks.map(t=>({sw,h,t})))); }
+function counts(tasks){ const c={todo:0,progress:0,testing:0,hold:0,done:0,total:tasks.length}; tasks.forEach(t=>c[t.status]++); return c; }
+function pct(c){ return c.total ? Math.round(c.done/c.total*100) : 0; }
+function people(){ return [...new Set(entries().map(e=>e.t.assignee.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+function initials(n){ return n.trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase(); }
+function colorFor(n){ let h=0; for(const ch of n) h=(h*31+ch.charCodeAt(0))>>>0; return COLORS[h%COLORS.length]; }
+function avatar(n){ return n ? `<span class="av" style="background:${colorFor(n)}" title="Assigned to ${esc(n)}">${esc(initials(n))}</span>` : ''; }
+function dueState(t){ if(!t.due || t.status==='done') return ''; const n=daysUntil(t.due); return n<0?'overdue':n<=3?'soon':'later'; }
+function dueBadge(t){
+  if(!t.due) return '';
+  if(t.status==='done') return `<span class="pill">📅 ${fmtDate(t.due)}</span>`;
+  const n=daysUntil(t.due), st=dueState(t);
+  const txt = n<0 ? `Overdue ${-n}d` : n===0 ? 'Due today' : n===1 ? 'Due tomorrow' : 'Due '+fmtDate(t.due);
+  return `<span class="pill ${st}" title="Due ${fmtDate(t.due)}">📅 ${txt}</span>`;
+}
+function stackBar(c){
+  if(!c.total) return '<div class="bar"></div>';
+  return '<div class="bar">'+STATUSES.map(s=>c[s.k]?`<div class="st-${s.k}" style="width:${c[s.k]/c.total*100}%" title="${s.label}: ${c[s.k]}"></div>`:'').join('')+'</div>';
+}
+function legend(){ return '<div class="legend">'+STATUSES.map(s=>`<span><i class="dot st-${s.k}"></i>${s.label}</span>`).join('')+'</div>'; }
+function touch(sw){ sw.updated = now(); }
+function log(sw, text){ db.activity.unshift({at:now(), sw:sw.id, swName:sw.name, text}); if(db.activity.length>300) db.activity.length=300; }
+function plural(n,w){ return `${n} ${w}${n===1?'':'s'}`; }
+
+/* ---------- Filters ---------- */
+function isFiltering(){ return ui.filter!=='all'||ui.prio!=='all'||ui.who!=='all'||ui.q||ui.hideDone||ui.swf!=='all'; }
+function matchTask(t, ignoreStatus){
+  if(!ignoreStatus && ui.filter!=='all' && t.status!==ui.filter) return false;
+  if(ui.hideDone && t.status==='done') return false;
+  if(ui.prio!=='all' && t.priority!==ui.prio) return false;
+  if(ui.who==='none' && t.assignee) return false;
+  if(ui.who!=='all' && ui.who!=='none' && t.assignee!==ui.who) return false;
+  const q=ui.q.trim().toLowerCase();
+  if(q && !(t.title.toLowerCase().includes(q) || t.notes.toLowerCase().includes(q) || t.assignee.toLowerCase().includes(q) || t.comments.some(x=>x.text.toLowerCase().includes(q)) || t.subtasks.some(x=>x.text.toLowerCase().includes(q)))) return false;
+  return true;
+}
+function setUi(k,v){ ui[k]=v; renderMain(); }
+function onSearch(v){ ui.q=v; renderMain(); const e=document.getElementById('q'); if(e){ e.focus(); e.setSelectionRange(e.value.length,e.value.length); } }
+function filterBar(tasks, extra, hideChips){
+  const c=counts(tasks), ppl=people();
+  return `<div class="toolbar">
+    ${hideChips?'':`<div class="chips">${[{k:'all',label:'All'},...STATUSES].map(s=>`<button class="chip ${ui.filter===s.k?'on':''}" onclick="setUi('filter','${s.k}')">${s.label} <b>${s.k==='all'?c.total:c[s.k]}</b></button>`).join('')}</div>`}
+    <div class="row" style="margin-top:10px">
+      <input type="search" id="q" placeholder="Search…  ( / )" value="${esc(ui.q)}" oninput="onSearch(this.value)" style="min-width:200px;flex:1;max-width:320px">
+      ${extra||''}
+      <select onchange="setUi('prio',this.value)"><option value="all">All priorities</option>${PRIORITIES.map(p=>`<option ${ui.prio===p?'selected':''}>${p}</option>`).join('')}</select>
+      <select onchange="setUi('who',this.value)"><option value="all">Everyone</option><option value="none" ${ui.who==='none'?'selected':''}>Unassigned</option>${ppl.map(p=>`<option ${ui.who===p?'selected':''}>${esc(p)}</option>`).join('')}</select>
+      <label class="tog"><input type="checkbox" ${ui.hideDone?'checked':''} onchange="setUi('hideDone',this.checked)"> Hide done</label>
+      ${isFiltering()?`<button class="btn sm" onclick="clearFilters()">✕ Clear filters</button>`:''}
+    </div></div>`;
+}
+function clearFilters(){ Object.assign(ui,{filter:'all',prio:'all',who:'all',swf:'all',q:'',hideDone:false}); renderMain(); }
+
+/* ---------- Render ---------- */
+function render(){ renderNav(); renderMain(); document.getElementById('people').innerHTML = people().map(p=>`<option value="${esc(p)}">`).join(''); }
+function renderMain(){ ui.view==='dashboard' ? renderDashboard() : ui.view==='tasks' ? renderAllTasks() : renderSoftware(); }
+function go(v){ ui = freshUi(v); document.getElementById('side').classList.remove('open'); render(); window.scrollTo(0,0); }
+
+function renderNav(){
+  const open = entries().filter(e=>e.t.status!=='done').length;
+  const items = db.software.map(sw=>{
+    const c = counts(allTasks(sw));
+    return `<button class="nav-item ${ui.view===sw.id?'active':''}" onclick="go('${sw.id}')"><span class="cdot" style="background:${sw.color}"></span><span class="nm">${esc(sw.name)}</span><span class="pc">${pct(c)}%</span></button>`;
+  }).join('');
+  document.getElementById('nav').innerHTML = `
+    <button class="nav-item ${ui.view==='dashboard'?'active':''}" onclick="go('dashboard')"><span>📊</span><span class="nm">Dashboard</span></button>
+    <button class="nav-item ${ui.view==='tasks'?'active':''}" onclick="go('tasks')"><span>☑️</span><span class="nm">All tasks</span><span class="badge">${open} open</span></button>
+    <div class="nav-label">Software <button class="icon-btn" title="Add software" onclick="editSoftware()">＋</button></div>
+    ${items || '<div class="meta" style="padding:6px 10px">No software yet</div>'}
+    <button class="nav-item" style="color:var(--accent)" onclick="editSoftware()"><span>＋</span><span class="nm">Add software</span></button>`;
+  const th = db.settings.theme;
+  document.getElementById('themeBtn').textContent = th==='dark' ? '🌙 Theme: Dark' : th==='light' ? '☀️ Theme: Light' : '🌓 Theme: Auto';
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const m = document.getElementById('main');
+  if(!db.software.length){
+    m.innerHTML = `<h1>Dashboard</h1><div class="card empty" style="margin-top:20px"><div class="e-ic">📦</div><h3>No software added yet</h3><p>Add your first software, then create headings and tasks to track new features and changes.</p><button class="btn primary" onclick="editSoftware()">＋ Add software</button></div>`;
+    return;
+  }
+  const all = entries(), c = counts(all.map(e=>e.t));
+  const open = all.filter(e=>e.t.status!=='done');
+  const overdue = open.filter(e=>dueState(e.t)==='overdue');
+  const week = open.filter(e=>e.t.due && daysUntil(e.t.due)>=0 && daysUntil(e.t.due)<=7);
+  const urgent = open.filter(e=>PRANK[e.t.priority]<=1);
+  const deadlines = open.filter(e=>e.t.due).sort((a,b)=>a.t.due.localeCompare(b.t.due)).slice(0,8);
+  const prioCounts = PRIORITIES.map(p=>({p, n:open.filter(e=>e.t.priority===p).length}));
+  const pMax = Math.max(1,...prioCounts.map(x=>x.n));
+  const pColor = {Critical:'var(--danger)',High:'#ea580c',Medium:'var(--s-progress)',Low:'var(--s-todo)'};
+  const work = {}; open.forEach(e=>{ const k=e.t.assignee||'Unassigned'; work[k]=work[k]||{n:0,od:0}; work[k].n++; if(dueState(e.t)==='overdue') work[k].od++; });
+  const workArr = Object.entries(work).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+  const wMax = Math.max(1,...workArr.map(x=>x[1].n));
+  const kpi = (l,v,color,click)=>`<div class="card kpi" ${click?`style="cursor:pointer" onclick="${click}"`:''}><div class="l">${l}</div><div class="v" ${color?`style="color:${color}"`:''}>${v}</div></div>`;
+
+  m.innerHTML = `
+    <div class="row"><div><h1>Dashboard</h1><div class="sub">Status of every software at a glance · ${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div><div class="spacer"></div><button class="btn primary" onclick="editSoftware()">＋ Add software</button></div>
+    <div class="kpis">
+      ${kpi('Software',db.software.length)}
+      ${kpi('Total tasks',c.total,'',"go('tasks')")}
+      ${kpi('Overall complete',pct(c)+'%','var(--s-done)')}
+      ${kpi('To Do',c.todo,'var(--s-todo)',"goTasks({filter:'todo'})")}
+      ${kpi('In Progress',c.progress,'var(--s-progress)',"goTasks({filter:'progress'})")}
+      ${kpi('Testing',c.testing,'var(--s-testing)',"goTasks({filter:'testing'})")}
+      ${kpi('On Hold',c.hold,'var(--s-hold)',"goTasks({filter:'hold'})")}
+      ${kpi('Overdue',overdue.length,overdue.length?'var(--danger)':'',"goTasks({hideDone:true,sort:'due'})")}
+      ${kpi('Due in 7 days',week.length,week.length?'var(--warn)':'',"goTasks({hideDone:true,sort:'due'})")}
+      ${kpi('High / Critical open',urgent.length,urgent.length?'#ea580c':'',"goTasks({hideDone:true,sort:'priority'})")}
+    </div>
+    <div class="card" style="padding:16px">${stackBar(c)}${legend()}</div>
+    <section class="block"><h2>Software status</h2>
+      <div class="sw-grid">${db.software.map(sw=>{
+        const ts = allTasks(sw), sc = counts(ts), od = ts.filter(t=>dueState(t)==='overdue').length;
+        return `<div class="card sw-card" style="border-top-color:${sw.color}" onclick="go('${sw.id}')">
+          <div class="row" style="align-items:flex-start"><div style="min-width:0;flex:1"><h3>${esc(sw.name)} ${sw.version?`<span class="pill">${esc(sw.version)}</span>`:''}</h3>
+            ${sw.desc?`<div class="desc">${esc(sw.desc)}</div>`:''}
+            <div class="meta" style="margin-top:4px">${plural(sw.headings.length,'heading')} · ${plural(sc.total,'task')}${sw.updated?' · updated '+ago(sw.updated):''}</div></div>
+            <div style="text-align:right"><div class="big-pct">${pct(sc)}%</div>${od?`<span class="pill overdue">${od} overdue</span>`:''}</div></div>
+          <div style="margin-top:12px">${stackBar(sc)}</div>
+          <div class="counts">${STATUSES.map(s=>`<div><b style="color:var(--s-${s.k})">${sc[s.k]}</b><span>${s.label}</span></div>`).join('')}</div>
+        </div>`;}).join('')}</div>
+    </section>
+    <section class="block grid2">
+      <div><h2>⏰ Upcoming & overdue deadlines</h2><ul class="card list">${deadlines.length?deadlines.map(({sw,t})=>`
+        <li class="click" onclick="openTask('${t.id}')"><span class="cdot" style="background:${sw.color}"></span><span class="t"><b>${esc(t.title)}</b> <span class="meta">— ${esc(sw.name)}</span></span>${avatar(t.assignee)}${dueBadge(t)}</li>`).join(''):'<li class="m">No open tasks have due dates yet. Set a due date on a task to see it here.</li>'}</ul></div>
+      <div><h2>🔥 Open tasks by priority</h2><div class="card" style="padding:6px 0">${prioCounts.map(x=>`
+        <div class="hbar"><span class="lb">${x.p}</span><div class="tr"><div style="width:${x.n/pMax*100}%;background:${pColor[x.p]}"></div></div><span class="n">${x.n}</span></div>`).join('')}</div>
+        <h2 style="margin-top:18px">👥 Workload by person</h2><div class="card" style="padding:6px 0">${workArr.length?workArr.map(([n,v])=>`
+        <div class="hbar"><span class="lb">${esc(n)}</span><div class="tr"><div style="width:${v.n/wMax*100}%;background:${n==='Unassigned'?'var(--s-todo)':colorFor(n)}"></div></div><span class="n">${v.n} open${v.od?` · <span style="color:var(--danger)">${v.od} late</span>`:''}</span></div>`).join(''):'<div class="empty-s">No open tasks.</div>'}</div></div>
+    </section>
+    <section class="block"><h2>🕑 Recent activity</h2><ul class="card list">${db.activity.length?db.activity.slice(0,12).map(a=>{
+        const sw=findSw(a.sw);
+        return `<li><span class="cdot" style="background:${sw?sw.color:'var(--s-todo)'}"></span><span class="t"><b>${esc(sw?sw.name:a.swName)}</b> — ${esc(a.text)}</span><span class="m">${ago(a.at)}</span></li>`;}).join(''):'<li class="m">Activity will appear here as you add and update tasks.</li>'}</ul></section>`;
+}
+function goTasks(opts){ go('tasks'); Object.assign(ui,opts); renderMain(); }
+
+/* ---------- All tasks ---------- */
+function renderAllTasks(){
+  const m = document.getElementById('main');
+  let list = entries().filter(e=>ui.swf==='all'||e.sw.id===ui.swf);
+  const base = list.map(e=>e.t);
+  list = list.filter(e=>matchTask(e.t));
+  const sorters = {
+    due:(a,b)=>(a.t.due||'9999').localeCompare(b.t.due||'9999') || PRANK[a.t.priority]-PRANK[b.t.priority],
+    priority:(a,b)=>PRANK[a.t.priority]-PRANK[b.t.priority] || (a.t.due||'9999').localeCompare(b.t.due||'9999'),
+    updated:(a,b)=>b.t.updated.localeCompare(a.t.updated),
+    software:(a,b)=>a.sw.name.localeCompare(b.sw.name) || a.h.name.localeCompare(b.h.name),
+    status:(a,b)=>STATUSES.findIndex(s=>s.k===a.t.status)-STATUSES.findIndex(s=>s.k===b.t.status)
+  };
+  list.sort(sorters[ui.sort]);
+  const extra = `<select onchange="setUi('swf',this.value)"><option value="all">All software</option>${db.software.map(s=>`<option value="${s.id}" ${ui.swf===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+    <select onchange="setUi('sort',this.value)">${[['due','Sort: Due date'],['priority','Sort: Priority'],['status','Sort: Status'],['updated','Sort: Last updated'],['software','Sort: Software']].map(([k,l])=>`<option value="${k}" ${ui.sort===k?'selected':''}>${l}</option>`).join('')}</select>`;
+  m.innerHTML = `
+    <div class="row"><div><h1>All tasks</h1><div class="sub">Every task across all your software · showing ${list.length} of ${base.length}</div></div></div>
+    ${filterBar(base, extra)}
+    ${!base.length ? `<div class="card empty" style="margin-top:16px"><div class="e-ic">☑️</div><h3>No tasks yet</h3><p>Open a software from the sidebar to add headings and tasks.</p></div>` :
+    `<div class="card tbl-wrap" style="margin-top:14px"><table class="tbl">
+      <thead><tr><th style="width:30px"></th><th>Task</th><th>Software</th><th>Status</th><th>Priority</th><th>Assignee</th><th>Due</th><th>💬</th></tr></thead>
+      <tbody>${list.map(({sw,h,t})=>`<tr class="click" onclick="if(!event.target.closest('select,input'))openTask('${t.id}')">
+        <td><input type="checkbox" ${t.status==='done'?'checked':''} onchange="setStatus('${t.id}',this.checked?'done':'todo')" style="accent-color:var(--s-done);width:16px;height:16px"></td>
+        <td><div class="${t.status==='done'?'done-t':''}" style="font-weight:600">${esc(t.title)}</div><div class="meta">${esc(h.name)} · ${esc(t.type)}${t.subtasks.length?` · ☑ ${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}`:''}</div></td>
+        <td><span class="row" style="gap:6px;flex-wrap:nowrap"><span class="cdot" style="background:${sw.color}"></span>${esc(sw.name)}</span></td>
+        <td>${statusSelect(t)}</td>
+        <td><span class="pill p-${t.priority}">${t.priority}</span></td>
+        <td>${t.assignee?`<span class="row" style="gap:6px;flex-wrap:nowrap">${avatar(t.assignee)}${esc(t.assignee)}</span>`:'<span class="meta">—</span>'}</td>
+        <td>${dueBadge(t)||'<span class="meta">—</span>'}</td>
+        <td class="meta">${t.comments.filter(c=>!c.system).length||''}</td>
+      </tr>`).join('') || `<tr><td colspan="8" class="empty-s">No tasks match these filters.</td></tr>`}</tbody></table></div>`}`;
+}
+
+/* ---------- Software page ---------- */
+function statusSelect(t){ return `<select class="status s-${t.status}" onchange="setStatus('${t.id}',this.value)">${STATUSES.map(s=>`<option value="${s.k}" ${t.status===s.k?'selected':''}>${s.label}</option>`).join('')}</select>`; }
+function taskMeta(t, withHeading){
+  const sd = t.subtasks.filter(s=>s.done).length, cc = t.comments.filter(c=>!c.system).length;
+  return `${withHeading?`<span class="pill">${esc(withHeading)}</span>`:''}<span class="pill">${esc(t.type)}</span><span class="pill p-${t.priority}">${t.priority}</span>${dueBadge(t)}${t.subtasks.length?`<span class="pill" title="Checklist">☑ ${sd}/${t.subtasks.length}</span>`:''}${cc&&withHeading!==undefined?`<span class="pill">💬 ${cc}</span>`:''}`;
+}
+function renderSoftware(){
+  const sw = findSw(ui.view); if(!sw){ ui.view='dashboard'; return render(); }
+  const m = document.getElementById('main'), ts = allTasks(sw), c = counts(ts);
+  const od = ts.filter(t=>dueState(t)==='overdue').length;
+  const board = ui.mode==='board';
+  m.innerHTML = `
+    <div class="row" style="align-items:flex-start"><div style="min-width:0;flex:1">
+        <h1><span class="cdot" style="background:${sw.color};width:14px;height:14px"></span>${esc(sw.name)} ${sw.version?`<span class="pill" style="font-size:12px">${esc(sw.version)}</span>`:''}</h1>
+        ${sw.desc?`<div class="sub" style="color:var(--text)">${esc(sw.desc)}</div>`:''}
+        <div class="sub">${c.done} of ${c.total} tasks done · ${pct(c)}% complete${od?` · <span style="color:var(--danger);font-weight:600">${od} overdue</span>`:''}</div></div>
+      <div class="row">
+        <div class="seg"><button class="${board?'':'on'}" onclick="ui.mode='list';renderMain()">☰ List</button><button class="${board?'on':''}" onclick="ui.mode='board';renderMain()">▦ Board</button></div>
+        <button class="btn" onclick="editSoftware('${sw.id}')">✎ Edit</button>
+        <button class="btn danger" onclick="deleteSoftware('${sw.id}')">🗑</button>
+        <button class="btn" onclick="addHeading('${sw.id}')">＋ Heading</button>
+        <button class="btn primary" onclick="openNewTask('${sw.id}')">＋ Task</button>
+      </div></div>
+    <div class="card" style="padding:14px;margin-top:16px">${stackBar(c)}${legend()}</div>
+    ${filterBar(ts, '', board)}
+    ${!sw.headings.length?`<div class="card empty" style="margin-top:16px"><div class="e-ic">🗂️</div><h3>No headings yet</h3><p>Headings group your tasks — e.g. "New Features", "Changes Needed", "Bug Fixes", or a version like "v2.1".</p><button class="btn primary" onclick="addHeading('${sw.id}')">＋ Add heading</button> <button class="btn" onclick="addDefaultHeadings('${sw.id}')">Use default headings</button></div>`
+      : board ? renderBoard(sw) : renderList(sw)}`;
+}
+function renderList(sw){
+  const filtering = isFiltering();
+  return sw.headings.map((h,hi)=>{
+    const hc = counts(h.tasks), shown = h.tasks.filter(t=>matchTask(t));
+    if(filtering && !shown.length) return '';
+    const col = ui.collapsed[h.id] && !filtering;
+    return `<div class="card heading ${col?'collapsed':''}">
+      <div class="heading-hd">
+        <h3 onclick="toggleHeading('${h.id}')"><span class="caret">▾</span>${esc(h.name)}</h3>
+        <span class="hcount">${hc.done}/${hc.total} done</span>
+        <div style="width:80px">${stackBar(hc)}</div>
+        <button class="icon-btn" title="Move up" ${hi===0?'disabled':''} onclick="moveHeading('${sw.id}','${h.id}',-1)">↑</button>
+        <button class="icon-btn" title="Move down" ${hi===sw.headings.length-1?'disabled':''} onclick="moveHeading('${sw.id}','${h.id}',1)">↓</button>
+        <button class="icon-btn" title="Rename heading" onclick="renameHeading('${sw.id}','${h.id}')">✎</button>
+        <button class="icon-btn" title="Delete heading" onclick="deleteHeading('${sw.id}','${h.id}')">🗑</button>
+      </div>
+      <div class="heading-body" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropList(event,'${h.id}')">
+        ${shown.map(taskRow).join('') || '<div class="no-tasks">No tasks yet — add one below, or drag a task here.</div>'}
+        <form class="add-task" data-h="${h.id}" onsubmit="quickAdd(event,'${sw.id}','${h.id}')">
+          <input type="text" name="ttl" placeholder="Add a task, feature or change…" required>
+          <select name="type">${TYPES.map(x=>`<option>${x}</option>`).join('')}</select>
+          <select name="prio">${PRIORITIES.map(x=>`<option ${x==='Medium'?'selected':''}>${x}</option>`).join('')}</select>
+          <button class="btn primary">Add</button>
+          <button type="button" class="btn" title="Add with due date, assignee & details" onclick="openNewTask('${sw.id}','${h.id}')">More…</button>
+        </form>
+      </div>
+    </div>`;}).join('') || '<div class="card empty-s" style="margin-top:16px">No tasks match these filters.</div>';
+}
+function taskRow(t){
+  const last = [...t.comments].reverse().find(c=>!c.system);
+  return `<div class="task ${t.status==='done'?'is-done':''}" data-id="${t.id}" draggable="true" ondragstart="dragStart(event,'${t.id}')" ondragend="dragEnd()">
+    <span class="grip" title="Drag to reorder or move">⋮⋮</span>
+    <input type="checkbox" ${t.status==='done'?'checked':''} title="Mark done" onchange="setStatus('${t.id}',this.checked?'done':'todo')">
+    <div class="title" onclick="openTask('${t.id}')">
+      <div class="tt">${esc(t.title)}</div>
+      <div class="tmeta">${taskMeta(t)}</div>
+      ${last?`<div class="last-c">💬 ${esc(last.text)}</div>`:''}
+    </div>
+    ${avatar(t.assignee)}
+    ${statusSelect(t)}
+    <button class="cbtn" title="Comments & details" onclick="openTask('${t.id}',true)">💬 ${t.comments.filter(c=>!c.system).length}</button>
+    <button class="icon-btn" title="Delete task" onclick="deleteTask('${t.id}')">🗑</button>
+  </div>`;
+}
+function renderBoard(sw){
+  const items = sw.headings.flatMap(h=>h.tasks.map(t=>({h,t}))).filter(x=>matchTask(x.t,true));
+  return `<div class="board">${STATUSES.map(s=>{
+    const col = items.filter(x=>x.t.status===s.k);
+    return `<div class="col" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropBoard(event,'${s.k}')">
+      <div class="col-hd"><i class="dot st-${s.k}"></i>${s.label}<span class="hcount">${col.length}</span><button class="icon-btn" title="Add task to ${s.label}" onclick="openNewTask('${sw.id}',null,'${s.k}')">＋</button></div>
+      ${col.map(({h,t})=>`<div class="kcard" draggable="true" ondragstart="dragStart(event,'${t.id}')" ondragend="dragEnd()" onclick="openTask('${t.id}')">
+        <div class="kt">${esc(t.title)}</div><div class="kh">${esc(h.name)}</div>
+        <div class="kf">${taskMeta(t,'')}<span class="spacer"></span>${avatar(t.assignee)}</div></div>`).join('')}
+    </div>`;}).join('')}</div>`;
+}
+
+/* ---------- Drag & drop ---------- */
+function dragStart(e,id){ drag=id; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',id);}catch(_){} const el=e.currentTarget; setTimeout(()=>el.classList.add('dragging')); }
+function dragEnd(){ drag=null; document.querySelectorAll('.dragging,.drag-over').forEach(x=>x.classList.remove('dragging','drag-over')); }
+function dragOver(e){ if(!drag) return; e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over'); }
+function dropBoard(e,status){ e.preventDefault(); const id=drag; dragEnd(); if(id) setStatus(id,status); }
+function dropList(e,hId){
+  e.preventDefault(); const id=drag; dragEnd(); if(!id) return;
+  const {sw,h:src,t} = findTask(id); if(!t) return;
+  const dest = sw.headings.find(x=>x.id===hId); if(!dest) return;
+  const row = e.target.closest('.task[data-id]');
+  src.tasks.splice(src.tasks.indexOf(t),1);
+  let i = dest.tasks.length;
+  if(row && row.dataset.id!==id){
+    i = dest.tasks.findIndex(x=>x.id===row.dataset.id);
+    const r=row.getBoundingClientRect(); if(e.clientY>r.top+r.height/2) i++;
+    if(i<0) i=dest.tasks.length;
+  }
+  dest.tasks.splice(i,0,t);
+  if(src!==dest){ log(sw,`Moved "${t.title}" to ${dest.name}`); t.updated=now(); }
+  touch(sw); save(); render();
+}
+
+/* ---------- Modal / toast ---------- */
+function openModal(html){ document.getElementById('modal').innerHTML = html; document.getElementById('ov').classList.add('show'); }
+function closeModal(){ document.getElementById('ov').classList.remove('show'); }
+function modalOpen(){ return document.getElementById('ov').classList.contains('show'); }
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeModal();
+  if(e.key==='/' && !modalOpen() && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){ const q=document.getElementById('q'); if(q){ e.preventDefault(); q.focus(); } }
+});
+function toast(msg, undoFn){
+  const el=document.getElementById('toast');
+  el.innerHTML = `<span>${esc(msg)}</span>${undoFn?'<button id="undoBtn">Undo</button>':''}`;
+  el.classList.add('show'); clearTimeout(toastTimer);
+  if(undoFn) document.getElementById('undoBtn').onclick=()=>{ undoFn(); el.classList.remove('show'); };
+  toastTimer=setTimeout(()=>el.classList.remove('show'), 7000);
+}
+function withUndo(msg, fn){
+  const snap = JSON.stringify(db);
+  fn(); save(); render();
+  toast(msg, ()=>{ db=JSON.parse(snap); save(); render(); toast('Restored'); });
+}
+function askText(title, label, value, cb){
+  openModal(`<h2>${esc(title)}</h2><form id="askf"><div class="field"><label>${esc(label)}</label><input type="text" id="askv" value="${esc(value||'')}" required></div>
+    <div class="modal-foot"><span class="spacer"></span><button type="button" class="btn" onclick="closeModal()">Cancel</button><button class="btn primary">Save</button></div></form>`);
+  const inp = document.getElementById('askv'); inp.focus(); inp.select();
+  document.getElementById('askf').onsubmit = e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v) return; closeModal(); cb(v); };
+}
+
+/* ---------- Software CRUD ---------- */
+function editSoftware(id){
+  const sw = id ? findSw(id) : null;
+  const color = sw ? sw.color : COLORS[db.software.length % COLORS.length];
+  openModal(`<h2>${sw?'Edit software':'Add software'}</h2><form id="swf">
+    <div class="field"><label>Software name</label><input type="text" name="name" value="${esc(sw?sw.name:'')}" required placeholder="e.g. Billing App"></div>
+    <div class="grid3" style="grid-template-columns:1fr 2fr">
+      <div class="field"><label>Current version</label><input type="text" name="version" value="${esc(sw?sw.version:'')}" placeholder="e.g. v2.3"></div>
+      <div class="field"><label>Colour</label><div class="swatches">${COLORS.map(c=>`<label><input type="radio" name="color" value="${c}" ${c===color?'checked':''}><span style="background:${c}"></span></label>`).join('')}</div></div>
+    </div>
+    <div class="field"><label>Description (optional)</label><textarea name="desc" style="min-height:56px" placeholder="What this software does, client name, etc.">${esc(sw?sw.desc:'')}</textarea></div>
+    ${sw?'':`<label class="tog"><input type="checkbox" name="defs" checked> Start with headings: ${DEFAULT_HEADINGS.join(', ')}</label>`}
+    <div class="modal-foot"><span class="spacer"></span><button type="button" class="btn" onclick="closeModal()">Cancel</button><button class="btn primary">${sw?'Save':'Add software'}</button></div></form>`);
+  const f=document.getElementById('swf'); f.elements['name'].focus();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const v={name:f.elements['name'].value.trim(), version:f.elements['version'].value.trim(), desc:f.elements['desc'].value.trim(), color:f.elements['color'].value};
+    if(!v.name) return;
+    closeModal();
+    if(sw){ Object.assign(sw,v); touch(sw); log(sw,'Software details updated'); save(); render(); }
+    else{
+      const n={id:uid(), ...v, created:now(), updated:now(), headings:[]};
+      if(f.elements['defs'].checked) n.headings = DEFAULT_HEADINGS.map(name=>({id:uid(), name, tasks:[]}));
+      db.software.push(n); log(n,'Software added'); save(); go(n.id);
+    }
+  };
+}
+function deleteSoftware(id){
+  const sw=findSw(id);
+  if(!confirm(`Delete "${sw.name}" and all its headings and tasks?`)) return;
+  ui.view='dashboard';
+  withUndo(`Deleted "${sw.name}"`, ()=>{ db.software = db.software.filter(s=>s.id!==id); });
+}
+
+/* ---------- Headings ---------- */
+function addHeading(swId){
+  const sw=findSw(swId);
+  askText('Add heading','Heading name (e.g. New Features, Changes Needed, v2.0)','',name=>{
+    sw.headings.push({id:uid(), name, tasks:[]}); touch(sw); log(sw,`Heading "${name}" added`); save(); render();
+  });
+}
+function addDefaultHeadings(swId){ const sw=findSw(swId); DEFAULT_HEADINGS.forEach(name=>sw.headings.push({id:uid(),name,tasks:[]})); touch(sw); save(); render(); }
+function renameHeading(swId,hId){ const sw=findSw(swId), h=sw.headings.find(x=>x.id===hId); askText('Rename heading','Heading name',h.name,v=>{ h.name=v; touch(sw); save(); render(); }); }
+function deleteHeading(swId,hId){
+  const sw=findSw(swId), h=sw.headings.find(x=>x.id===hId);
+  if(h.tasks.length && !confirm(`Delete heading "${h.name}" and its ${plural(h.tasks.length,'task')}?`)) return;
+  withUndo(`Deleted heading "${h.name}"`, ()=>{ sw.headings = sw.headings.filter(x=>x.id!==hId); touch(sw); });
+}
+function moveHeading(swId,hId,dir){
+  const sw=findSw(swId), i=sw.headings.findIndex(x=>x.id===hId), j=i+dir;
+  if(j<0||j>=sw.headings.length) return;
+  [sw.headings[i],sw.headings[j]]=[sw.headings[j],sw.headings[i]]; save(); render();
+}
+function toggleHeading(hId){ ui.collapsed[hId]=!ui.collapsed[hId]; renderMain(); }
+
+/* ---------- Tasks ---------- */
+function newTask(o){ return {id:uid(), title:o.title, type:o.type||'Feature', priority:o.priority||'Medium', status:o.status||'todo', assignee:o.assignee||'', due:o.due||'', notes:o.notes||'', subtasks:[], comments:[], created:now(), updated:now()}; }
+function quickAdd(e,swId,hId){
+  e.preventDefault();
+  const f=e.target, title=f.elements['ttl'].value.trim(); if(!title) return;
+  const sw=findSw(swId), h=sw.headings.find(x=>x.id===hId);
+  h.tasks.push(newTask({title, type:f.elements['type'].value, priority:f.elements['prio'].value}));
+  touch(sw); log(sw,`Task "${title}" added to ${h.name}`); save(); render();
+  const nf=document.querySelector(`.add-task[data-h="${hId}"]`); if(nf) nf.elements['ttl'].focus();
+}
+function openNewTask(swId,hId,status){
+  const sw=findSw(swId);
+  if(!sw.headings.length){ alert('Add a heading first — tasks are grouped under headings.'); return addHeading(swId); }
+  openModal(`<h2>New task · ${esc(sw.name)}</h2><form id="ntf">
+    <div class="field"><label>Task</label><input type="text" name="ttl" required placeholder="What needs to be built or changed?"></div>
+    <div class="grid3">
+      <div class="field"><label>Heading</label><select name="h">${sw.headings.map(h=>`<option value="${h.id}" ${h.id===hId?'selected':''}>${esc(h.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Status</label><select name="status">${STATUSES.map(s=>`<option value="${s.k}" ${s.k===(status||'todo')?'selected':''}>${s.label}</option>`).join('')}</select></div>
+      <div class="field"><label>Type</label><select name="type">${TYPES.map(x=>`<option>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Priority</label><select name="prio">${PRIORITIES.map(x=>`<option ${x==='Medium'?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Assignee</label><input type="text" name="who" list="people" placeholder="Name"></div>
+      <div class="field"><label>Due date</label><input type="date" name="due"></div>
+    </div>
+    <div class="field"><label>Details</label><textarea name="notes" placeholder="Description, acceptance criteria, links…"></textarea></div>
+    <div class="modal-foot"><label class="tog"><input type="checkbox" name="more"> Add another</label><span class="spacer"></span><button type="button" class="btn" onclick="closeModal()">Cancel</button><button class="btn primary">Add task</button></div></form>`);
+  const f=document.getElementById('ntf'); f.elements['ttl'].focus();
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const el=f.elements, title=el['ttl'].value.trim(); if(!title) return;
+    const h=sw.headings.find(x=>x.id===el['h'].value);
+    h.tasks.push(newTask({title, type:el['type'].value, priority:el['prio'].value, status:el['status'].value, assignee:el['who'].value.trim(), due:el['due'].value, notes:el['notes'].value}));
+    touch(sw); log(sw,`Task "${title}" added to ${h.name}`); save(); render();
+    if(el['more'].checked){ el['ttl'].value=''; el['notes'].value=''; el['ttl'].focus(); toast(`Added "${title}"`); } else closeModal();
+  };
+}
+function setStatus(tId,status){
+  const {sw,t}=findTask(tId); if(!t || t.status===status) return render();
+  t.comments.push({id:uid(), text:`Status changed: ${SL[t.status]} → ${SL[status]}`, at:now(), system:true});
+  log(sw,`"${t.title}" → ${SL[status]}`);
+  t.status=status; t.updated=now(); touch(sw); save(); render();
+  if(status==='done') toast(`✓ "${t.title}" marked done`);
+}
+function deleteTask(tId){
+  const {sw,h,t}=findTask(tId); if(!t) return;
+  withUndo(`Deleted "${t.title}"`, ()=>{ h.tasks.splice(h.tasks.indexOf(t),1); touch(sw); });
+}
+function duplicateTask(tId){
+  const {sw,h,t}=findTask(tId);
+  const c=newTask({...t, title:t.title+' (copy)', status:'todo'}); c.subtasks=t.subtasks.map(s=>({id:uid(),text:s.text,done:false}));
+  h.tasks.splice(h.tasks.indexOf(t)+1,0,c); touch(sw); save(); render(); openTask(c.id); toast('Task duplicated');
+}
+function openTask(tId,focusComment){
+  const {sw,h,t}=findTask(tId); if(!t) return closeModal();
+  const prev=document.getElementById('cmt'), draft=modalOpen()&&prev?prev.value:'';
+  const sd=t.subtasks.filter(s=>s.done).length;
+  openModal(`
+    <div class="row meta" style="margin-bottom:8px"><span class="cdot" style="background:${sw.color}"></span>${esc(sw.name)} › ${esc(h.name)}<span class="spacer"></span><button class="icon-btn" onclick="closeModal()" title="Close (Esc)">✕</button></div>
+    <div class="field"><label>Task</label><input type="text" value="${esc(t.title)}" onchange="updTask('${tId}','title',this.value)" style="font-weight:600;font-size:15px"></div>
+    <div class="grid3">
+      <div class="field"><label>Status</label>${statusSelect(t).replace('class="status','style="width:100%" class="status').replace(`setStatus('${tId}',this.value)`,`updTask('${tId}','status',this.value)`)}</div>
+      <div class="field"><label>Type</label><select onchange="updTask('${tId}','type',this.value)">${TYPES.map(x=>`<option ${t.type===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Priority</label><select onchange="updTask('${tId}','priority',this.value)">${PRIORITIES.map(x=>`<option ${t.priority===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Assignee</label><input type="text" list="people" value="${esc(t.assignee)}" placeholder="Unassigned" onchange="updTask('${tId}','assignee',this.value.trim())"></div>
+      <div class="field"><label>Due date ${dueBadge(t)}</label><input type="date" value="${t.due}" onchange="updTask('${tId}','due',this.value)"></div>
+      <div class="field"><label>Heading</label><select onchange="updTask('${tId}','heading',this.value)">${sw.headings.map(x=>`<option value="${x.id}" ${x.id===h.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Details / description</label><textarea placeholder="What needs to be done, acceptance criteria, links…" onchange="updTask('${tId}','notes',this.value)">${esc(t.notes)}</textarea></div>
+    <div class="field"><label>Checklist ${t.subtasks.length?`(${sd}/${t.subtasks.length})`:''}</label>
+      ${t.subtasks.length?`<div class="bar" style="height:5px;margin-bottom:6px"><div class="st-done" style="width:${sd/t.subtasks.length*100}%"></div></div>`:''}
+      ${t.subtasks.map(s=>`<div class="sub-item ${s.done?'done':''}"><input type="checkbox" ${s.done?'checked':''} onchange="toggleSub('${tId}','${s.id}')"><span>${esc(s.text)}</span><button class="icon-btn" title="Remove" onclick="delSub('${tId}','${s.id}')">✕</button></div>`).join('')}
+      <form id="subf" style="display:flex;gap:6px;margin-top:4px"><input type="text" id="subt" placeholder="Add a checklist item…" style="flex:1"><button class="btn">Add</button></form>
+    </div>
+    <div class="field"><label>Comments & history (${t.comments.filter(c=>!c.system).length})</label>
+      <div class="comments" id="cms">${t.comments.length?t.comments.map(cm=>`
+        <div class="cm" ${cm.system?'style="opacity:.7;padding:5px 10px"':''}><div class="when"><span>${fmt(cm.at)}</span><button class="icon-btn" style="padding:0 4px" title="Delete" onclick="delComment('${tId}','${cm.id}')">✕</button></div><div class="txt">${cm.system?'<i>'+esc(cm.text)+'</i>':esc(cm.text)}</div></div>`).join(''):'<div class="meta">No comments yet.</div>'}</div>
+      <form id="cmf" style="display:flex;gap:6px;align-items:flex-end"><textarea id="cmt" placeholder="Write a comment… (Ctrl+Enter to post)" style="min-height:44px">${esc(draft)}</textarea><button class="btn primary">Post</button></form>
+    </div>
+    <div class="meta">Created ${fmt(t.created)} · Updated ${fmt(t.updated)}</div>
+    <div class="modal-foot"><button class="btn danger" onclick="closeModal();deleteTask('${tId}')">🗑 Delete</button><button class="btn" onclick="duplicateTask('${tId}')">⧉ Duplicate</button><span class="spacer"></span><button class="btn primary" onclick="closeModal()">Done</button></div>`);
+  const cms=document.getElementById('cms'); cms.scrollTop=cms.scrollHeight;
+  const cmt=document.getElementById('cmt');
+  const post=()=>{ const v=cmt.value.trim(); if(!v) return; cmt.value=''; t.comments.push({id:uid(), text:v, at:now()}); t.updated=now(); touch(sw); log(sw,`Comment on "${t.title}"`); save(); render(); openTask(tId,true); };
+  document.getElementById('cmf').onsubmit=e=>{ e.preventDefault(); post(); };
+  cmt.addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); post(); } });
+  document.getElementById('subf').onsubmit=e=>{ e.preventDefault(); const v=document.getElementById('subt').value.trim(); if(!v) return; t.subtasks.push({id:uid(),text:v,done:false}); t.updated=now(); save(); render(); openTask(tId); document.getElementById('subt').focus(); };
+  if(focusComment) cmt.focus();
+}
+function updTask(tId,field,val){
+  const {sw,h,t}=findTask(tId); if(!t) return;
+  if(field==='title'){ val=val.trim(); if(!val) return openTask(tId); }
+  if(field==='heading'){
+    if(val===h.id) return;
+    const dest=sw.headings.find(x=>x.id===val); h.tasks.splice(h.tasks.indexOf(t),1); dest.tasks.push(t);
+    log(sw,`Moved "${t.title}" to ${dest.name}`);
+  } else if(field==='status'){
+    if(t.status!==val){ t.comments.push({id:uid(), text:`Status changed: ${SL[t.status]} → ${SL[val]}`, at:now(), system:true}); log(sw,`"${t.title}" → ${SL[val]}`); }
+    t.status=val;
+  } else {
+    if(field==='assignee' && val!==t.assignee) log(sw,`"${t.title}" assigned to ${val||'nobody'}`);
+    if(field==='due' && val!==t.due) log(sw,`"${t.title}" due date ${val?'set to '+fmtDate(val):'removed'}`);
+    t[field]=val;
+  }
+  t.updated=now(); touch(sw); save(); render();
+  if(['status','heading','due','assignee'].includes(field)) openTask(tId);
+}
+function toggleSub(tId,sId){ const {sw,t}=findTask(tId); const s=t.subtasks.find(x=>x.id===sId); s.done=!s.done; t.updated=now(); touch(sw); save(); render(); openTask(tId); }
+function delSub(tId,sId){ const {t}=findTask(tId); t.subtasks=t.subtasks.filter(x=>x.id!==sId); save(); render(); openTask(tId); }
+function delComment(tId,cId){ const {t}=findTask(tId); t.comments=t.comments.filter(c=>c.id!==cId); save(); render(); openTask(tId); }
+
+/* ---------- Theme ---------- */
+function applyTheme(){ const th=db.settings.theme; if(th==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',th); }
+function cycleTheme(){ const o=['auto','light','dark']; db.settings.theme=o[(o.indexOf(db.settings.theme)+1)%3]; save(); applyTheme(); renderNav(); }
+
+/* ---------- Backup / export ---------- */
+function download(name, content, type){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type})); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function exportData(){ download(`feature-tracker-backup-${todayISO()}.json`, JSON.stringify(db,null,2), 'application/json'); toast('Backup downloaded'); }
+function exportCSV(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=[['Software','Version','Heading','Task','Type','Priority','Status','Assignee','Due date','Checklist','Comments','Last comment','Details','Created','Updated']];
+  entries().forEach(({sw,h,t})=>{
+    const last=[...t.comments].reverse().find(c=>!c.system);
+    rows.push([sw.name,sw.version,h.name,t.title,t.type,t.priority,SL[t.status],t.assignee,t.due,t.subtasks.length?`${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}`:'',t.comments.filter(c=>!c.system).length,last?last.text:'',t.notes,fmt(t.created),fmt(t.updated)]);
+  });
+  download(`feature-tracker-tasks-${todayISO()}.csv`, '﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+  toast('Spreadsheet downloaded — open it in Excel');
+}
+function importData(input){
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d || !Array.isArray(d.software)) throw new Error('bad');
+      if(confirm(`Replace current data with the backup (${plural(d.software.length,'software')})?`)){
+        const snap=JSON.stringify(db); db=migrate(d); save(); applyTheme(); go('dashboard');
+        toast('Backup restored', ()=>{ db=JSON.parse(snap); save(); applyTheme(); render(); });
+      }
+    }catch(e){ alert('That file is not a valid tracker backup.'); }
+    input.value='';
+  };
+  r.readAsText(file);
+}
+
+/* ---------- Auto backup to Google Drive ---------- */
+// ▼▼▼ Paste your Google OAuth 2.0 Client ID between the quotes (ends with .apps.googleusercontent.com).
+//     You can also leave this empty and enter it inside the app under "Google Drive backup".
+const GOOGLE_CLIENT_ID = '';
+// ▲▲▲
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'; // app can only see files it created
+const DRIVE_FOLDER = 'Feature Tracker Backups';
+const DAILY_RE = /^feature-tracker-\d{4}-\d{2}-\d{2}\.json$/;
+const BKEY = 'software-feature-tracker.backup';
+const TKEY = 'software-feature-tracker.gtoken';
+const FREQ = {
+  change:{label:'About 1 minute after each change', ms:60e3},
+  hourly:{label:'Every hour (only if something changed)', ms:3600e3},
+  daily:{label:'Once a day (only if something changed)', ms:864e5}
+};
+const FOLDER_SUPPORTED = typeof window.showDirectoryPicker === 'function';
+const IS_FILE = location.protocol === 'file:';
+let bk = loadBk(), bkBusy = false, dirHandle = null, dirPerm = 'none', bkTab = null;
+let gTok = loadTok(), tokenClient = null, tokWaiters = [], gisPromise = null, driveList = null;
+
+function defBk(){ return {method:'none', clientId:'', freq:'change', keep:30, last:'', lastErr:'', dirty:false, changedAt:0, folderId:'', folderLink:'', latestId:'', email:'', folderName:''}; }
+function loadBk(){
+  try{ const b = Object.assign(defBk(), JSON.parse(localStorage.getItem(BKEY))||{}); if(b.method==='script') b.method='none'; return b; }
+  catch(e){ return defBk(); }
+}
+function saveBk(){ try{ localStorage.setItem(BKEY, JSON.stringify(bk)); }catch(e){} }
+function markDirty(){ if(!bk || bk.method==='none') return; bk.dirty=true; bk.changedAt=Date.now(); saveBk(); renderBackupBtn(); }
+function clientId(){ return (GOOGLE_CLIENT_ID || bk.clientId || '').trim(); }
+
+/* --- Google sign-in (Google Identity Services token flow) --- */
+function loadTok(){ try{ const t=JSON.parse(sessionStorage.getItem(TKEY)); if(t && t.exp>Date.now()) return t; }catch(e){} return null; }
+function tokValid(){ return !!(gTok && gTok.exp > Date.now()+60e3); }
+function dropTok(){ gTok=null; try{ sessionStorage.removeItem(TKEY); }catch(e){} }
+function loadGis(){
+  if(window.google && google.accounts && google.accounts.oauth2) return Promise.resolve();
+  if(gisPromise) return gisPromise;
+  gisPromise = new Promise((ok,no)=>{
+    const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true;
+    s.onload=()=>ok(); s.onerror=()=>{ gisPromise=null; no(new Error('Could not load Google sign-in. Check your internet connection.')); };
+    document.head.appendChild(s);
+  });
+  return gisPromise;
+}
+function getTokenClient(){
+  if(tokenClient && tokenClient._cid===clientId()) return tokenClient;
+  tokenClient = google.accounts.oauth2.initTokenClient({client_id:clientId(), scope:DRIVE_SCOPE, callback:onToken, error_callback:onTokenError});
+  tokenClient._cid = clientId();
+  return tokenClient;
+}
+// Must be called from a click (Google opens a pop-up).
+function signIn(prompt){
+  return new Promise(async (ok,no)=>{
+    if(IS_FILE) return no(new Error('Google sign-in only works when the tracker is opened from its web address (e.g. GitHub Pages), not as a file on your computer.'));
+    if(!clientId()) return no(new Error('Enter your Google OAuth Client ID first.'));
+    try{ await loadGis(); }catch(e){ return no(e); }
+    tokWaiters.push({ok,no});
+    const opts = {prompt: prompt!==undefined ? prompt : (bk.email ? '' : 'select_account')};
+    if(bk.email) opts.login_hint = bk.email;
+    try{ getTokenClient().requestAccessToken(opts); }catch(e){ tokWaiters.splice(0).forEach(w=>w.no(e)); }
+  });
+}
+function onToken(r){
+  const w = tokWaiters.splice(0);
+  if(r.error) return w.forEach(x=>x.no(new Error(r.error_description || r.error)));
+  if(!google.accounts.oauth2.hasGrantedAllScopes(r, DRIVE_SCOPE)) return w.forEach(x=>x.no(new Error('Google Drive access was not allowed. Sign in again and tick the Google Drive permission.')));
+  gTok = {access_token:r.access_token, exp:Date.now()+(Number(r.expires_in)||3600)*1000};
+  try{ sessionStorage.setItem(TKEY, JSON.stringify(gTok)); }catch(e){}
+  renderBackupBtn();
+  w.forEach(x=>x.ok());
+}
+function onTokenError(e){
+  const msg = e && e.type==='popup_closed' ? 'The Google sign-in window was closed.'
+    : e && e.type==='popup_failed_to_open' ? 'The pop-up was blocked. Allow pop-ups for this site and try again.'
+    : (e && e.message) || 'Google sign-in failed.';
+  tokWaiters.splice(0).forEach(x=>x.no(new Error(msg)));
+}
+function signOutGoogle(){
+  if(gTok && window.google && google.accounts && google.accounts.oauth2){ try{ google.accounts.oauth2.revoke(gTok.access_token, ()=>{}); }catch(e){} }
+  dropTok();
+}
+
+/* --- Google Drive API --- */
+function authError(){ const e=new Error('Your Google sign-in has expired. Sign in again to continue backing up.'); e.auth=true; return e; }
+async function gdrive(path, opt, raw){
+  opt = opt || {};
+  if(!tokValid()) throw authError();
+  const url = path.startsWith('http') ? path : 'https://www.googleapis.com/drive/v3/'+path;
+  let res;
+  try{ res = await fetch(url, {...opt, headers:{Authorization:'Bearer '+gTok.access_token, ...(opt.headers||{})}}); }
+  catch(e){ throw new Error('Could not reach Google Drive. Check your internet connection.'); }
+  if(res.status===401){ dropTok(); throw authError(); }
+  if(!res.ok){
+    let m='HTTP '+res.status; try{ const j=await res.json(); if(j.error && j.error.message) m=j.error.message; }catch(e){}
+    if(res.status===403 && /has not been used|is disabled/i.test(m)) m='The Google Drive API is not enabled in your Google Cloud project. Enable it under APIs & Services → Library.';
+    throw new Error('Google Drive: '+m);
+  }
+  if(raw) return res;
+  return res.status===204 ? null : res.json();
+}
+const qEsc = s => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+async function driveFolderId(){
+  if(bk.folderId){
+    try{ const f=await gdrive(`files/${bk.folderId}?fields=id,trashed,webViewLink`); if(!f.trashed){ bk.folderLink=f.webViewLink||bk.folderLink; return f.id; } }
+    catch(e){ if(e.auth) throw e; }
+  }
+  const q = encodeURIComponent(`name='${qEsc(DRIVE_FOLDER)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const l = await gdrive(`files?q=${q}&fields=files(id,webViewLink)&spaces=drive`);
+  let f = l.files && l.files[0];
+  if(!f) f = await gdrive('files?fields=id,webViewLink', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:DRIVE_FOLDER, mimeType:'application/vnd.google-apps.folder'})});
+  bk.folderId=f.id; bk.folderLink=f.webViewLink||''; saveBk();
+  return f.id;
+}
+async function driveFiles(folderId){
+  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+  const l = await gdrive(`files?q=${q}&fields=files(id,name,modifiedTime,size)&orderBy=name%20desc&pageSize=1000`);
+  return l.files || [];
+}
+async function driveUpsert(folderId, files, name, text){
+  const ex = files.find(f=>f.name===name);
+  if(ex) return gdrive(`https://www.googleapis.com/upload/drive/v3/files/${ex.id}?uploadType=media&fields=id`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:text});
+  const b = 'tracker'+uid();
+  const body = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name, parents:[folderId], mimeType:'application/json'})}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${text}\r\n--${b}--`;
+  return gdrive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {method:'POST', headers:{'Content-Type':'multipart/related; boundary='+b}, body});
+}
+async function driveBackup(){
+  const fid = await driveFolderId();
+  const files = await driveFiles(fid);
+  const json = JSON.stringify(db, null, 2);
+  await driveUpsert(fid, files, `feature-tracker-${todayISO()}.json`, json);
+  const latest = await driveUpsert(fid, files, 'feature-tracker-latest.json', json);
+  if(latest && latest.id) bk.latestId = latest.id;
+  // keep only the newest N daily copies (older ones go to Drive's Trash)
+  const daily = (await driveFiles(fid)).filter(f=>DAILY_RE.test(f.name)).sort((a,b)=>b.name.localeCompare(a.name));
+  for(const f of daily.slice(bk.keep)) await gdrive(`files/${f.id}?fields=id`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({trashed:true})});
+}
+async function fetchEmail(){
+  try{ const a=await gdrive('about?fields=user(emailAddress)'); bk.email=(a.user&&a.user.emailAddress)||bk.email; saveBk(); }catch(e){}
+}
+
+/* --- folder method (Google Drive for desktop synced folder) --- */
+function idb(){ return new Promise((ok,no)=>{ const r=indexedDB.open('feature-tracker',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>ok(r.result); r.onerror=()=>no(r.error); }); }
+async function idbSet(k,v){ const d=await idb(); return new Promise((ok,no)=>{ const tx=d.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k); tx.oncomplete=ok; tx.onerror=()=>no(tx.error); }); }
+async function idbGet(k){ const d=await idb(); return new Promise((ok,no)=>{ const r=d.transaction('kv').objectStore('kv').get(k); r.onsuccess=()=>ok(r.result); r.onerror=()=>no(r.error); }); }
+async function writeToFolder(name, text){ const fh=await dirHandle.getFileHandle(name,{create:true}); const w=await fh.createWritable(); await w.write(text); await w.close(); }
+async function folderBackup(){
+  if(!dirHandle) throw new Error('No backup folder chosen yet.');
+  dirPerm = await dirHandle.queryPermission({mode:'readwrite'});
+  if(dirPerm!=='granted') throw new Error('The browser needs permission to write to the folder again. Click "Reconnect backup folder".');
+  const json = JSON.stringify(db,null,2);
+  await writeToFolder(`feature-tracker-${todayISO()}.json`, json);
+  await writeToFolder('feature-tracker-latest.json', json);
+  const names=[]; for await (const [name] of dirHandle.entries()) if(DAILY_RE.test(name)) names.push(name);
+  names.sort().reverse().slice(bk.keep).forEach(n=>dirHandle.removeEntry(n).catch(()=>{}));
+}
+async function chooseFolder(){
+  try{
+    const h = await window.showDirectoryPicker({id:'tracker-backup', mode:'readwrite'});
+    dirHandle=h; dirPerm='granted'; await idbSet('backupDir',h);
+    Object.assign(bk,{method:'folder', folderName:h.name, lastErr:''}); saveBk();
+    await runBackup(true);
+  }catch(e){ if(e.name!=='AbortError') toast('Could not use that folder: '+e.message); }
+}
+async function reconnectFolder(){
+  if(!dirHandle) return openBackup();
+  try{ dirPerm = await dirHandle.requestPermission({mode:'readwrite'}); }catch(e){}
+  if(dirPerm==='granted') runBackup(true); else toast('Permission not granted');
+}
+
+/* --- shared backup engine --- */
+function needsSignIn(){ return bk.method==='drive' && !tokValid(); }
+async function runBackup(manual){
+  if(bkBusy || bk.method==='none') return;
+  if(needsSignIn()){ if(manual) toast('Sign in to Google first'); renderBackupBtn(); return; }
+  bkBusy=true; renderBackupBtn();
+  const startedAt = bk.changedAt;
+  try{
+    if(bk.method==='drive') await driveBackup(); else await folderBackup();
+    bk.last=now(); bk.lastErr=''; bk.dirty = bk.changedAt>startedAt;
+    if(manual) toast('☁ Backed up to Google Drive');
+  }catch(e){
+    if(!e.auth) bk.lastErr=e.message;
+    if(manual) toast((e.auth?'':'Backup failed: ')+e.message);
+  }finally{
+    bkBusy=false; saveBk(); renderBackupBtn();
+    if(modalOpen() && document.getElementById('bkmodal')) openBackup();
+  }
+}
+// Click handler: signs in to Google if needed, then backs up.
+async function signInAndBackup(){
+  if(bk.method==='folder' && dirPerm!=='granted') return reconnectFolder();
+  if(needsSignIn()){ try{ await signIn(); }catch(e){ return toast(e.message); } }
+  runBackup(true);
+}
+function backupTick(){
+  renderBackupBtn();
+  if(bkBusy || bk.method==='none' || !bk.dirty || needsSignIn()) return;
+  if(bk.method==='folder' && dirPerm!=='granted') return;
+  if(bk.freq==='change'){ if(Date.now()-bk.changedAt >= FREQ.change.ms) runBackup(); }
+  else if(!bk.last || Date.now()-Date.parse(bk.last) >= FREQ[bk.freq].ms) runBackup();
+}
+document.addEventListener('visibilitychange', ()=>{
+  // Last-chance save when the tab is hidden/closed: update feature-tracker-latest.json in Drive.
+  if(document.visibilityState!=='hidden' || bk.method!=='drive' || !bk.dirty || !tokValid() || !bk.latestId || bkBusy) return;
+  const body = JSON.stringify(db);
+  if(body.length > 60000) return; // browsers limit background uploads to 64 KB
+  try{ fetch(`https://www.googleapis.com/upload/drive/v3/files/${bk.latestId}?uploadType=media`, {method:'PATCH', keepalive:true, headers:{Authorization:'Bearer '+gTok.access_token, 'Content-Type':'application/json'}, body}).catch(()=>{}); }catch(e){}
+});
+function renderBackupBtn(){
+  const b=document.getElementById('backupBtn'); if(!b) return;
+  const pill=document.getElementById('bkPill');
+  b.className='btn sm';
+  let pillOn=false;
+  if(bk.method==='none') b.textContent='☁ Set up Google Drive backup';
+  else if(bkBusy) b.textContent='☁ Backing up…';
+  else if(bk.method==='folder' && dirPerm!=='granted'){ b.textContent='⚠ Reconnect backup folder'; b.classList.add('err'); pillOn=bk.dirty; }
+  else if(needsSignIn()){
+    b.textContent = bk.dirty ? '⚠ Sign in to back up changes' : (bk.last ? `☁ Backed up ${ago(bk.last)}` : '☁ Sign in to Google');
+    if(bk.dirty){ b.classList.add('err'); pillOn=true; }
+  }
+  else if(bk.lastErr){ b.textContent='⚠ Backup failed — click to fix'; b.classList.add('err'); }
+  else { b.classList.add('ok'); b.textContent = bk.last ? `☁ Backed up ${ago(bk.last)}${bk.dirty?' · changes pending':''}` : '☁ Auto backup on'; }
+  if(pill){
+    pill.classList.toggle('show', pillOn);
+    pill.textContent = bk.method==='folder' ? '⚠ Reconnect backup folder' : '☁ Sign in to Google to back up your changes';
+  }
+}
+function backupClick(){ openBackup(); }
+function setBk(k,v){ bk[k]=v; saveBk(); renderBackupBtn(); }
+function saveClientId(){
+  const v=document.getElementById('bkcid').value.trim();
+  if(v && !/\.apps\.googleusercontent\.com$/.test(v)){ toast('That does not look like an OAuth Client ID — it should end with .apps.googleusercontent.com'); return; }
+  if(v!==bk.clientId){ signOutGoogle(); tokenClient=null; Object.assign(bk,{clientId:v, folderId:'', latestId:'', email:''}); }
+  saveBk(); toast(v?'Client ID saved':'Client ID cleared'); openBackup();
+}
+async function connectDrive(){
+  try{ await signIn(); }catch(e){ return toast(e.message); }
+  await fetchEmail();
+  Object.assign(bk,{method:'drive', lastErr:''}); saveBk();
+  await runBackup(true);
+}
+async function switchAccount(){
+  signOutGoogle(); Object.assign(bk,{email:'', folderId:'', latestId:''}); saveBk();
+  try{ await signIn('select_account'); }catch(e){ return toast(e.message); }
+  await fetchEmail(); bk.method='drive'; saveBk(); runBackup(true);
+}
+function turnOffBackup(){
+  if(!confirm('Turn off automatic backup? Files already in Google Drive are kept.')) return;
+  if(bk.method==='drive') signOutGoogle();
+  Object.assign(bk,{method:'none', lastErr:'', dirty:false}); driveList=null; saveBk(); renderBackupBtn(); openBackup();
+}
+async function loadDriveList(){
+  if(needsSignIn()){ try{ await signIn(); }catch(e){ return toast(e.message); } }
+  try{ driveList = (await driveFiles(await driveFolderId())).filter(f=>DAILY_RE.test(f.name)||f.name==='feature-tracker-latest.json'); openBackup(); }
+  catch(e){ toast(e.message); }
+}
+async function restoreDriveFile(id, name){
+  try{
+    if(needsSignIn()) await signIn();
+    const d = await (await gdrive(`files/${id}?alt=media`, {}, true)).json();
+    if(!d || !Array.isArray(d.software)) throw new Error('That backup file is not valid');
+    if(!confirm(`Replace the data in this browser with "${name}" (${plural(d.software.length,'software')})?`)) return;
+    const snap=JSON.stringify(db); closeModal(); db=migrate(d); save(); applyTheme(); go('dashboard');
+    toast('Restored from Google Drive', ()=>{ db=JSON.parse(snap); save(); applyTheme(); render(); });
+  }catch(e){ toast('Restore failed: '+e.message); }
+}
+
+function openBackup(){
+  if(!bkTab) bkTab = bk.method==='folder' ? 'folder' : 'drive';
+  if(bkTab==='drive' && !IS_FILE && clientId()) loadGis().catch(()=>{}); // preload so the sign-in pop-up opens instantly
+  const on = bk.method!=='none';
+  const origin = (IS_FILE || location.origin==='null') ? 'https://YOUR-USERNAME.github.io' : location.origin;
+  const status = !on ? `<div class="bk-status off">Automatic backup is <b>off</b>. Your data is only saved in this browser.</div>`
+    : bk.lastErr ? `<div class="bk-status err"><b>Last backup failed:</b> ${esc(bk.lastErr)}</div>`
+    : needsSignIn() ? `<div class="bk-status err">Google sign-in has expired (Google only allows 1 hour at a time for web apps). ${bk.dirty?'<b>You have changes that are not backed up yet.</b>':''} <button class="btn sm primary" onclick="signInAndBackup()">Sign in &amp; back up</button></div>`
+    : `<div class="bk-status ok">✓ Backing up to ${bk.method==='drive'?'Google Drive'+(bk.email?' as <b>'+esc(bk.email)+'</b>':''):'your Drive folder <b>'+esc(bk.folderName)+'</b>'}. ${bk.last?'Last backup <b>'+fmt(bk.last)+'</b>.':'No backup yet.'}${bk.dirty?' Changes waiting to back up.':''}
+       ${bk.method==='drive'&&bk.folderLink?` <a href="${esc(bk.folderLink)}" target="_blank" rel="noopener">Open Drive folder ↗</a>`:''}</div>`;
+  const guide = `
+    <details ${clientId()?'':'open'} style="margin:10px 0"><summary style="cursor:pointer;font-weight:600">How to get a Google OAuth Client ID (one-time, ~5 min)</summary>
+    <ol class="steps">
+      <li>Open the <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener">Google Cloud Console</a> and create a project (e.g. "Feature Tracker").</li>
+      <li>Go to <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" rel="noopener">APIs &amp; Services → Library → Google Drive API</a> and click <b>Enable</b>.</li>
+      <li>Open <a href="https://console.cloud.google.com/auth/overview" target="_blank" rel="noopener">Google Auth Platform</a> (OAuth consent screen) → <b>Get started</b>. Enter an app name and your email, choose <b>External</b>, and finish.</li>
+      <li>Under <b>Audience</b>, either add your Gmail address(es) as <b>Test users</b> or click <b>Publish app</b>. The <code>drive.file</code> permission this app uses doesn't need Google verification.</li>
+      <li>Under <b>Clients</b>, click <b>Create client</b> → Application type <b>Web application</b>. Under <b>Authorized JavaScript origins</b>, add:<br><code>${esc(origin)}</code><br>Leave the redirect URIs empty, then click <b>Create</b>.</li>
+      <li>Copy the <b>Client ID</b> (it ends with <code>.apps.googleusercontent.com</code>) and paste it below, or into <code>GOOGLE_CLIENT_ID</code> at the top of the script in <code>index.html</code>.</li>
+    </ol>
+    <p class="meta">Privacy: the app only asks for the <b>drive.file</b> permission, so it can see only the backup files it creates. It can't read anything else in your Drive. No server is involved: your browser talks directly to Google.</p></details>`;
+  const drivePanel = IS_FILE
+    ? `<div class="bk-status err">Google sign-in doesn't work when the tracker is opened as a file from your computer. Open it from its web address (for example your GitHub Pages link), or use the <b>Drive folder on this PC</b> option.</div>${guide}`
+    : `
+    ${GOOGLE_CLIENT_ID ? `<p class="meta">OAuth Client ID is set in the code ✓</p>`
+      : `<div class="field"><label>Google OAuth Client ID</label><div class="row"><input type="text" id="bkcid" value="${esc(bk.clientId)}" placeholder="1234567890-abc….apps.googleusercontent.com" style="flex:1;min-width:240px"><button class="btn" onclick="saveClientId()">Save</button></div></div>`}
+    ${guide}
+    <div class="row" style="margin-top:6px">
+      ${bk.method!=='drive'
+        ? `<button class="btn primary" ${clientId()?'':'disabled title="Enter your Client ID first"'} onclick="connectDrive()">🔐 Sign in with Google &amp; turn on backup</button>`
+        : `${needsSignIn()?`<button class="btn primary" onclick="signInAndBackup()">🔐 Sign in to Google</button>`:`<span class="meta">Signed in${bk.email?' as <b>'+esc(bk.email)+'</b>':''} · session ends ${new Date(gTok.exp).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}</span>`}
+           <button class="btn sm" onclick="switchAccount()">Switch account</button>`}
+    </div>
+    ${bk.method==='drive' ? `<div style="margin-top:14px"><div class="row"><b style="font-size:13px">Restore from Google Drive</b><span class="spacer"></span><button class="btn sm" onclick="loadDriveList()">${driveList?'↻ Refresh':'Show backups'}</button></div>
+      ${driveList ? (driveList.length ? `<ul class="card list" style="margin-top:8px;max-height:200px;overflow:auto">${driveList.map(f=>`<li><span class="t">${f.name==='feature-tracker-latest.json'?'<b>Latest backup</b>':esc(fmtDate(f.name.slice(16,26)))}</span><span class="m">${fmt(f.modifiedTime)} · ${Math.max(1,Math.round((+f.size||0)/1024))} KB</span><button class="btn sm" onclick="restoreDriveFile('${f.id}','${esc(f.name)}')">Restore</button></li>`).join('')}</ul>` : '<p class="meta">No backups in Drive yet.</p>') : '<p class="meta" style="margin:4px 0 0">Use this to load your data on another computer or browser, or to roll back to an earlier day.</p>'}</div>` : ''}`;
+  const folderPanel = FOLDER_SUPPORTED ? `
+    <p style="margin:0 0 6px">If <b>Google Drive for desktop</b> is installed on this PC, pick a folder inside your Google Drive (for example <code>G:\\My Drive\\Feature Tracker Backups</code>). The tracker saves backups there, and Drive syncs them to the cloud. You don't need a Client ID for this.</p>
+    <div style="margin-top:6px"><button class="btn primary" onclick="chooseFolder()">📁 ${bk.method==='folder'?'Change folder':'Choose folder'}…</button> ${bk.method==='folder'&&dirPerm!=='granted'&&dirHandle?'<button class="btn" onclick="reconnectFolder()">Reconnect</button>':''}</div>
+    <p class="meta">Works in Chrome and Edge. When asked, choose <b>"Allow on every visit"</b>. To restore, use <b>⬆ Restore</b> in the sidebar and pick <code>feature-tracker-latest.json</code> from that folder.</p>`
+    : `<p>This browser can't save to folders on your PC. Use <b>Chrome</b> or <b>Edge</b>, or use the <b>Google Drive (sign in)</b> option.</p>`;
+  openModal(`<div id="bkmodal"><div class="row" style="margin-bottom:12px"><h2 style="margin:0">☁ Google Drive backup</h2><span class="spacer"></span><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    ${status}
+    <div class="seg" style="margin-bottom:12px"><button class="${bkTab==='drive'?'on':''}" onclick="bkTab='drive';openBackup()">Google Drive (sign in)</button><button class="${bkTab==='folder'?'on':''}" onclick="bkTab='folder';openBackup()">Drive folder on this PC</button></div>
+    ${bkTab==='drive'?drivePanel:folderPanel}
+    <div class="grid3" style="grid-template-columns:2fr 1fr;margin-top:14px">
+      <div class="field"><label>How often</label><select onchange="setBk('freq',this.value)">${Object.entries(FREQ).map(([k,v])=>`<option value="${k}" ${bk.freq===k?'selected':''}>${v.label}</option>`).join('')}</select></div>
+      <div class="field"><label>Keep daily copies for</label><select onchange="setBk('keep',+this.value)">${[7,14,30,60,90,365].map(n=>`<option value="${n}" ${bk.keep===n?'selected':''}>${n} days</option>`).join('')}</select></div>
+    </div>
+    <div class="modal-foot">
+      ${on?`<button class="btn primary" onclick="signInAndBackup()" ${bkBusy?'disabled':''}>☁ Back up now</button>`:''}
+      <span class="spacer"></span>
+      ${on?`<button class="btn danger" onclick="turnOffBackup()">Turn off</button>`:''}
+      <button class="btn" onclick="closeModal()">Close</button>
+    </div></div>`);
+}
+async function initBackup(){
+  if(bk.method==='folder' && FOLDER_SUPPORTED){
+    try{ dirHandle = await idbGet('backupDir'); if(dirHandle) dirPerm = await dirHandle.queryPermission({mode:'readwrite'}); }catch(e){}
+  }
+  if(bk.method==='drive' && !IS_FILE && clientId()) loadGis().catch(()=>{});
+  renderBackupBtn();
+  setInterval(backupTick, 15000);
+  backupTick();
+}
+
+/* ---------- Init ---------- */
+db = migrate(load());
+applyTheme();
+render();
+initBackup();
+</script>
+</body>
+</html>
