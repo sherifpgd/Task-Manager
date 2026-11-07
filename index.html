@@ -995,13 +995,12 @@ function exportData(){ download(`feature-tracker-backup-${todayISO()}.json`, JSO
 function exportCSV(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const cap=s=>s.length>32000?s.slice(0,32000)+'\n…(truncated)':s;   // Excel cell limit is 32,767 chars
-  const rows=[['Software','Version','Heading','Task','Details / description','Type','Priority','Status','Assignee','Due date','Checklist done','Checklist items','Comments','Comments & history','Created','Updated']];
+  const rows=[['Software','Version','Heading','Task','Details / description','Type','Priority','Status','Assignee','Due date','Checklist done','Checklist items','Comments','Created','Updated']];
   entries().forEach(({sw,h,t})=>{
     const checklist=t.subtasks.map(s=>(s.done?'☑ ':'☐ ')+s.text).join('\n');
-    const history=t.comments.map(c=>`[${fmt(c.at)}]${c.by?' '+c.by:''}${c.system?' (update)':''}: ${c.text}`).join('\n');
     rows.push([sw.name,sw.version,h.name,t.title,cap(t.notes||''),t.type,t.priority,SL[t.status],t.assignee,t.due,
       t.subtasks.length?`${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}`:'',cap(checklist),
-      t.comments.filter(c=>!c.system).length,cap(history),fmt(t.created),fmt(t.updated)]);
+      t.comments.filter(c=>!c.system).length,fmt(t.created),fmt(t.updated)]);
   });
   download(`feature-tracker-tasks-${todayISO()}.csv`, '﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
   toast('Spreadsheet downloaded — open it in Excel');
